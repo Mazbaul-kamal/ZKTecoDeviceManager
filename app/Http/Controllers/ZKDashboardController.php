@@ -2,7 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use Rats\Zkteco\Lib\ZKTeco;
+// use Rats\Zkteco\Lib\ZKTeco;
+use Jmrashed\Zkteco\Lib\ZKTeco;
 use App\Services\ZkService;
 use Illuminate\Http\ZKBioService;
 use Illuminate\Http\Request;
@@ -13,11 +14,16 @@ use Illuminate\Support\Facades\Log;
 
 class ZKDashboardController extends Controller
 {
-    protected $zkService;
+    protected ZKTeco $zk;
+    protected string $ip;
+    protected int $port;
 
     public function __construct(ZkService $zkService)
     {
         $this->zkService = $zkService;
+        $this->ip = env('ZK_DEVICE_IP', '192.168.1.215');
+        $this->port = env('ZK_DEVICE_PORT', 4370);
+        $this->zk = new ZKTeco($this->ip, $this->port);
     }
 
     /**
@@ -25,6 +31,7 @@ class ZKDashboardController extends Controller
      */
     public function dashboard()
     {
+        $device = Device::first(); // Assuming you have a device record in DB
         try {
             $data = $this->zkService->getDeviceData();
             return view('dashboard', $data);
@@ -118,64 +125,6 @@ class ZKDashboardController extends Controller
         }
     }
 
-    // /**
-    //  * Full device test
-    //  */
-    // public function fullTest()
-    // {
-    //     $ip = env('ZK_DEVICE_IP', '192.168.1.215');
-    //     $port = env('ZK_DEVICE_PORT', 4370);
-
-    //     $zk = new ZKTeco($ip, $port);
-
-    //     try {
-    //         if (!$zk->connect()) {
-    //             return response()->json([
-    //                 'success' => false,
-    //                 'error' => 'Device not connected'
-    //             ], 500);
-    //         }
-
-    //         $zk->disableDevice();
-
-    //         // Device Info
-    //         $deviceInfo = [
-    //             'ip' => $ip,
-    //             'port' => $port,
-    //             'device_name' => $zk->deviceName(),
-    //             'os_version' => $zk->osVersion(),
-    //             'version' => $zk->version(),
-    //             'serial_number' => $zk->serialNumber(),
-    //             'fm_version' => $zk->fmVersion(),
-    //             'platform' => $zk->platform(),
-    //             'device_time' => $zk->getTime(),
-    //         ];
-
-    //         // Users and Attendance
-    //         $users = $zk->getUser() ?? [];
-    //         $attendance = $zk->getAttendance() ?? [];
-
-    //         $zk->enableDevice();
-    //         $zk->disconnect();
-
-    //         return response()->json([
-    //             'success' => true,
-    //             'connection' => 'Success',
-    //             'device_info' => $deviceInfo,
-    //             'users_count' => count($users),
-    //             'attendance_count' => count($attendance),
-    //             'sample_users' => array_slice($users, 0, 5),
-    //             'sample_attendance' => array_slice($attendance, 0, 5),
-    //         ]);
-
-    //     } catch (\Throwable $e) {
-    //         Log::error('Full test error: ' . $e->getMessage());
-    //         return response()->json([
-    //             'success' => false,
-    //             'error' => $e->getMessage()
-    //         ], 500);
-    //     }
-    // }
     
     /**
      * Display users list
@@ -226,6 +175,17 @@ class ZKDashboardController extends Controller
             ], 500);
         }
     }
+        /**
+     * Get current system time
+     */
+    public function getSystemTime(): JsonResponse
+    {
+        return response()->json([
+            'success' => true,
+            'system_time' => now()->format('Y-m-d H:i:s'),
+            'timezone' => config('app.timezone')
+        ]);
+    }
     
 /**
  * Sync device time with system time
@@ -247,15 +207,23 @@ public function syncTime(Request $request)
     }
 }
 
-    /**
-     * Get current system time
-     */
-    public function getSystemTime(): JsonResponse
+
+
+    public function restart()
     {
-        return response()->json([
-            'success' => true,
-            'system_time' => now()->format('Y-m-d H:i:s'),
-            'timezone' => config('app.timezone')
-        ]);
+        $this->zk->connect();
+        $this->zk->restart();
+        $this->zk->disconnect();
+
+        return back()->with('success', 'Device Restarted Successfully');
+    }
+
+    public function shutdown()
+    {
+        $this->zk->connect();
+        $this->zk->powerOff();
+        $this->zk->disconnect();
+
+        return back()->with('success', 'Device Shutdown Successfully');
     }
 }

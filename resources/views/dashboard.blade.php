@@ -3,20 +3,30 @@
 @section('content')
     <div class="container">
         <h1 class="mb-4">
-            <i class="fas fa-microchip"></i> ZKTeco Device Dashboard
+            <i class="fas fa-microchip"></i> ZKTeco Device Manager Dashboard
         </h1>
 
         <!-- Connection Status -->
         <div class="card d-flex align-items-center justify-content-between mb-4" style="flex-direction: row;">
-            <h1 class="card-title">
-                <i class="fas fa-plug"></i> Connection Status
+            <h1 class="card-title d-flex align-items-center gap-2 mb-0">
+                <div><i class="fas fa-plug"></i> Connection Status</div>
+                <span class="badge {{ ($connection ?? 'Failed') === 'Success' ? 'badge-success' : 'badge-failed' }}">
+                    <i
+                        class="fas {{ ($connection ?? 'Failed') === 'Success' ? 'fa-check-circle' : 'fa-exclamation-circle' }}"></i>
+                    {{ $connection ?? 'Failed' }}
+                </span>
             </h1>
-            <span class="badge {{ ($connection ?? 'Failed') === 'Success' ? 'badge-success' : 'badge-failed' }}">
-                <i
-                    class="fas {{ ($connection ?? 'Failed') === 'Success' ? 'fa-check-circle' : 'fa-exclamation-circle' }}"></i>
-                {{ $connection ?? 'Failed' }}
-            </span>
-                    <button class="btn btn-sm btn-outline-primary" onclick="restartDevice()">Restart Device</button>
+            <div>
+                <form method="POST" action="/device/restart" class="d-inline">
+                    @csrf
+                    <button class="btn btn-warning">Restart Device</button>
+                </form>
+
+                <form method="POST" action="/device/shutdown" class="d-inline">
+                    @csrf
+                    <button class="btn btn-danger">Shutdown Device</button>
+                </form>
+            </div>
         </div>
 
         <!-- Device Info -->
@@ -54,17 +64,13 @@
                 <i class="fas fa-clock"></i> Device Time
                 <div class="stat-number">
                     <span id="device-time">{{ $device_info['device_time'] ?? '-' }}</span>
-                    <button id="sync-time-btn" class="btn-sync">
-                        <i class="fas fa-sync-alt"></i> Sync Time
+                    <button class="btn btn-primary btn-sm" onclick="syncTime({{ $device->id }})">
+                        Sync Time
                     </button>
                 </div>
             </div>
         </div>
-        <!-- Hidden Form for Sync -->
-        <form id="sync-form" method="POST" action="{{ route('device.sync.time') }}" style="display: none;">
-            @csrf
-            <input type="hidden" name="system_time" id="system-time-input" value="">
-        </form>
+
 
         <!-- Users Table -->
         <div class="card">
@@ -224,101 +230,27 @@
         </div>
 
         <script>
-            document.addEventListener("DOMContentLoaded", function() {
-    const syncBtn = document.getElementById('sync-time-btn');
-    const deviceTimeEl = document.getElementById('device-time');
-    
-    if (!syncBtn) return;
+            function getTime(id) {
+                fetch('/devices/' + id + '/time')
+                    .then(res => res.json())
+                    .then(data => {
+                        alert("Device Time: " + data.device_time +
+                            "\nServer Time: " + data.server_time);
+                    });
+            }
 
-    syncBtn.addEventListener('click', function() {
-        // Disable button
-        syncBtn.disabled = true;
-        syncBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Syncing...';
-        
-        // Get current system time
-        const now = new Date();
-        const year = now.getFullYear();
-        const month = String(now.getMonth() + 1).padStart(2, '0');
-        const day = String(now.getDate()).padStart(2, '0');
-        const hours = String(now.getHours()).padStart(2, '0');
-        const minutes = String(now.getMinutes()).padStart(2, '0');
-        const seconds = String(now.getSeconds()).padStart(2, '0');
-        
-        const systemTime = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-        
-        // Show loading
-        Swal.fire({
-            title: 'Syncing Device Time',
-            text: 'Please wait...',
-            allowOutsideClick: false,
-            didOpen: () => {
-                Swal.showLoading();
+            function syncTime(id) {
+                fetch('/devices/' + id + '/sync-time', {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        }
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        alert(data.message);
+                    });
             }
-        });
-        
-        // Send request
-        fetch('{{ route("device.sync.time") }}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-            },
-            body: JSON.stringify({ system_time: systemTime })
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
-        })
-        .then(data => {
-            Swal.close();
-            
-            if (data.success) {
-                // Update device time display
-                if (data.device_time) {
-                    deviceTimeEl.textContent = data.device_time;
-                    
-                    // Highlight effect
-                    deviceTimeEl.style.transition = 'background-color 0.5s';
-                    deviceTimeEl.style.backgroundColor = '#d4edda';
-                    setTimeout(() => {
-                        deviceTimeEl.style.backgroundColor = '';
-                    }, 1000);
-                }
-                
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Success!',
-                    text: 'Device time updated to: ' + data.device_time,
-                    timer: 2000,
-                    showConfirmButton: false
-                });
-            } else {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: data.message || 'Failed to sync device time'
-                });
-            }
-        })
-        .catch(error => {
-            Swal.close();
-            console.error('Error:', error);
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: error.message || 'Could not connect to server'
-            });
-        })
-        .finally(() => {
-            syncBtn.disabled = false;
-            syncBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Sync Time';
-        });
-    });
-});
-
             // Delete User
             function deleteUser(uid) {
                 Swal.fire({

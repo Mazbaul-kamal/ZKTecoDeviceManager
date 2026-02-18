@@ -8,6 +8,7 @@ use App\Models\Attendance;
 use App\Models\Device;
 use App\Models\ZkUser;
 use Illuminate\Support\Facades\Log;
+use Carbon\Carbon;
 
 
 class ZkService
@@ -78,6 +79,18 @@ class ZkService
             'attendance_count' => count($attendance),
             'sample_users' => array_slice($users, 0, 1000),
             'sample_attendance' => array_slice($attendance, 0, 1000),
+        ];
+    }
+    public function syncDeviceTime($time = null)
+    {
+        $time = $time ?? now()->format('Y-m-d H:i:s');
+
+        $result = $this->zk->setTime($time);
+
+        return [
+            'success' => $result ? true : false,
+            'message' => $result ? 'Device time synced successfully' : 'Failed to sync device time',
+            'synced_time' => $time
         ];
     }
     public function restart()
@@ -243,46 +256,6 @@ class ZkService
     {
         return $this->zk->getAvailableRoles();
     }
-/**
- * Sync device time with system time
- *
- * @param string $systemTime
- * @return array
- */
-public function syncDeviceTime(string $systemTime = null): array
-{
-    try {
-        $timeToSet = $systemTime ?? now()->format('Y-m-d H:i:s');
-        
-        // Connect to device
-        if (!$this->connect()) {
-            return [
-                'success' => false,
-                'message' => 'Could not connect to device'
-            ];
-        }
 
-        // Set the time directly (some devices don't need disable/enable)
-        $this->zk->setTime($timeToSet);
-        
-        // Wait a moment
-        usleep(500000);
-        
-        // Get updated time
-        $deviceTime = $this->zk->getTime();
-        
-        $this->disconnect();
 
-        return [
-            'success' => true,
-            'device_time' => $deviceTime ?: $timeToSet
-        ];
-        
-    } catch (\Exception $e) {
-        return [
-            'success' => false,
-            'message' => 'Error: ' . $e->getMessage()
-        ];
-    }
-}
 }

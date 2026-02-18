@@ -8,6 +8,7 @@
     "require": {
         "php": "^8.2",
         "guzzlehttp/guzzle": "^7.10",
+        "jmrashed/zkteco": "^1.2",
         "laravel/framework": "^12.0",
         "laravel/tinker": "^2.10.1",
         "rats/zkteco": "^002.0"
