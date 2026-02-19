@@ -31,7 +31,7 @@ class ZKDashboardController extends Controller
      */
     public function dashboard()
     {
-        $device = Device::first(); // Assuming you have a device record in DB
+        
         try {
             $data = $this->zkService->getDeviceData();
             return view('dashboard', $data);
@@ -182,32 +182,28 @@ class ZKDashboardController extends Controller
     {
         return response()->json([
             'success' => true,
-            'system_time' => now()->format('Y-m-d H:i:s'),
+            'system_time' => now()->format('d-m-Y H:i:s'),
             'timezone' => config('app.timezone')
         ]);
     }
     
-/**
- * Sync device time with system time
- */
-public function syncTime(Request $request)
-{
-    try {
-        $systemTime = $request->input('system_time', now()->format('Y-m-d H:i:s'));
-        
-        $result = $this->zkService->syncDeviceTime($systemTime);
-        
-        return response()->json($result);
-        
-    } catch (\Exception $e) {
-        return response()->json([
-            'success' => false,
-            'message' => $e->getMessage()
-        ], 500);
+    /**
+     * Sync device time with server time.
+     */
+    public function syncTime()
+    {
+        $timeString = now()
+            ->setTimezone(config('app.timezone'))
+            ->format('d-m-y H:i:s');
+
+        $result = $this->zkService->setDeviceTime($timeString);
+
+        return redirect()->back()->with([
+            'sync_success' => $result['success'],
+            'sync_message' => $result['message'] ?? null,
+            'device_time'  => $result['device_time'] ?? null,
+        ]);
     }
-}
-
-
 
     public function restart()
     {
@@ -221,9 +217,12 @@ public function syncTime(Request $request)
     public function shutdown()
     {
         $this->zk->connect();
-        $this->zk->powerOff();
+        $this->zk->shutdown();
         $this->zk->disconnect();
 
         return back()->with('success', 'Device Shutdown Successfully');
     }
+
+
+
 }

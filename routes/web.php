@@ -14,7 +14,9 @@ Route::get('/', function () {
 });
 Route::post('/device/restart', [ZKDashboardController::class, 'restart']);
 Route::post('/device/shutdown', [ZKDashboardController::class, 'shutdown']);
-Route::post('devices/{device}/sync-time', [DeviceController::class, 'syncTime']);
+Route::post('/device/sync-time', [ZKDashboardController::class, 'syncTime'])
+    ->name('device.sync.time');
+
 // ZK Users Management - NO AUTH
 Route::prefix('zk/users')->name('zk.users.')->group(function () {
     Route::get('/', [ZkUserController::class, 'index'])->name('index');
@@ -25,7 +27,7 @@ Route::prefix('zk/users')->name('zk.users.')->group(function () {
     Route::delete('/{uid}', [ZkUserController::class, 'destroy'])->name('destroy');
     
     // Fingerprint & Face enrollment
-    Route::post('/{uid}/enroll-fingerprint', [ZkUserController::class, 'enrollFingerprint'])->name('enroll.fingerprint');
+    Route::post('/zk/users/{uid}/enroll-fingerprint', [ZkUserController::class, 'enrollFingerprint'])->name('enroll.fingerprint');
     Route::post('/{uid}/enroll-face', [ZkUserController::class, 'enrollFace'])->name('enroll.face');
     Route::put('/{uid}/role', [ZkUserController::class, 'updateRole'])->name('update.role');
 });

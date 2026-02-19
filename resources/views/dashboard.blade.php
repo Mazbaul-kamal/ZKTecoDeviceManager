@@ -21,55 +21,111 @@
                     @csrf
                     <button class="btn btn-warning">Restart Device</button>
                 </form>
-
-                <form method="POST" action="/device/shutdown" class="d-inline">
-                    @csrf
-                    <button class="btn btn-danger">Shutdown Device</button>
-                </form>
-            </div>
-        </div>
-
-        <!-- Device Info -->
-        <div class="card">
-            <div class="card-title">
-                <i class="fas fa-info-circle"></i> Device Information
-            </div>
-            <div class="grid grid-3">
-                @foreach ($device_info ?? [] as $key => $value)
-                    <div class="info-box">
-                        <div class="info-label">
-                            <i class="fas fa-tag"></i> {{ str_replace('_', ' ', $key) }}
-                        </div>
-                        <div class="info-value">
-                            {{ $value }}
-                        </div>
-                    </div>
-                @endforeach
             </div>
         </div>
 
         <!-- Stats -->
-        <div class="grid grid-3">
-            <div class="stat-box stat-blue">
-                <i class="fas fa-users"></i> Total Users
-                <div class="stat-number">{{ $users_count ?? 0 }}</div>
+        <div class="grid grid-3 mb-4">
+            <div class="stat-box p-0">
+                <div class="sync-tree-card">
+                    <div class="tree-header">
+                       <i class="fas fa-info-circle"></i> Device Information
+                    </div>
+                    <div class="mgmt-options">
+                        @foreach ($device_info ?? [] as $key => $value)
+                        <div class="mgmt-row">
+                            <span class="left-label"><i class="fas fa-tag"></i> {{ str_replace('_', ' ', $key) }}</span>
+                            <span class="value-placeholder">{{ $value }}</span>
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
             </div>
 
-            <div class="stat-box stat-purple">
-                <i class="fas fa-history"></i> Attendance Logs
-                <div class="stat-number">{{ $attendance_count ?? 0 }}</div>
+            <div class="stat-box p-0">
+                <div class="device-mgmt-block">
+                    <h3><i class="fas fa-gear"></i> Device Management</h3>
+                    <div class="mgmt-options">
+                        <div class="mgmt-row">
+                            <span class="left-label"><i class="fas fa-calendar"></i> <input type="date" id="dateInput"></span>
+                            <span class="value-placeholder" id="dateDisplay">24-02-08</span>
+                        </div>
+                        <script>
+                            const dateInput = document.getElementById('dateInput');
+                            const dateDisplay = document.getElementById('dateDisplay');
+
+                            // Update placeholder when user selects a date
+                            dateInput.addEventListener('input', function() {
+                                if (this.value) {
+                                    const date = new Date(this.value);
+                                    // Format as DD-MM-YY
+                                    const formatted = String(date.getDate()).padStart(2, '0') + '-' +
+                                                    String(date.getMonth() + 1).padStart(2, '0') + '-' +
+                                                    String(date.getFullYear()).slice(2);
+                                    dateDisplay.textContent = formatted;
+                                } else {
+                                    dateDisplay.textContent = '24-02-08'; // default value
+                                }
+                            });
+                        </script>
+                        <div class="mgmt-row">
+                            <span class="left-label"><i class="fas fa-clock"></i> Set Date Format</span>
+                            <span class="value-placeholder">mm/dd/yy</span>
+                        </div>
+                        <div class="mgmt-row">
+                            <span class="left-label"><i class="fas fa-rotate"></i> Sync Time</span>
+                            <span class="value-placeholder">now</span>
+                        </div>
+                        <div class="mgmt-row">
+                            <span class="left-label"><i class="fas fa-lock"></i> Clear Admin Privilege</span>
+                            <span class="value-placeholder"> </span>
+                        </div>
+                        <div class="mgmt-row">
+                            <span class="left-label"><i class="fas fa-fingerprint"></i> Delete All Fingerprint</span>
+                            <span class="value-placeholder">0</span>
+                        </div>
+                        <div class="mgmt-row">
+                            <span class="left-label"><i class="fas fa-clock-rotate-left"></i> Delete All Transaction</span>
+                            <span class="value-placeholder">0</span>
+                        </div>
+                        <div class="mgmt-row">
+                            <span class="left-label"><i class="fas fa-user-xmark"></i> Delete All Employee</span>
+                            <span class="value-placeholder">0</span>
+                        </div>
+                        <div class="mgmt-row">
+                            <span class="left-label"><i class="fas fa-database"></i> Delete All Data</span>
+                            <span class="value-placeholder"> </span>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <div class="stat-box stat-green">
-                <i class="fas fa-clock"></i> Device Time
-                <div class="stat-number">
-                    <span id="device-time">{{ $device_info['device_time'] ?? '-' }}</span>
-                    <button class="btn btn-primary btn-sm" onclick="syncTime({{ $device->id }})">
-                        Sync Time
-                    </button>
+            <div class="stat-box p-0">
+                <div class="sync-tree-card">
+                    <div class="tree-header">
+                        <i class="fas fa-arrow-right-arrow-left"></i> Sync Data
+                    </div>
+                    <div class="tree-item">
+                        <div class="area1-row">
+                            <i class="fas fa-network-wired"></i></i> Device IP:
+                            <span class="mac-addr"> {{ $device_info['Device IP'] ?? '-' }}</span>
+                        </div>
+                        <ul class="sync-options">
+                            <li><i class="fas fa-users"></i> Sync Employee Information</li>
+                            <li><i class="fas fa-fingerprint"></i> Sync Fingerprint Template</li>
+                            <li><i class="fas fa-face-smile"></i> Sync Face Template</li>
+                            <li><i class="fas fa-hand"></i> Sync Palm Template</li>
+                            <li><i class="fas fa-hand-back-fist"></i> Sync Finger Vein Template</li>
+                            <li><i class="fas fa-pen-to-square"></i> Overwrite Software Employee</li>
+                            <li><i class="fas fa-camera"></i> Sync Employee Photo</li>
+                            <li><i class="fas fa-message"></i> Send Message To Device</li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>
+
+        <script></script>
 
 
         <!-- Users Table -->
@@ -109,11 +165,13 @@
                                     </span>
                                 </td>
                                 <td>
-                                    @if ($user['fingerprint'] ?? false)
+                                <td>
+                                    @if (!empty($user['fingerprints']) && count($user['fingerprints']) > 0)
                                         <i class="fas fa-check-circle text-success"></i> Yes
                                     @else
                                         <i class="fas fa-times-circle text-danger"></i> No
                                     @endif
+                                </td>
                                 </td>
                                 <td>
                                     @if ($user['face'] ?? false)
@@ -230,27 +288,6 @@
         </div>
 
         <script>
-            function getTime(id) {
-                fetch('/devices/' + id + '/time')
-                    .then(res => res.json())
-                    .then(data => {
-                        alert("Device Time: " + data.device_time +
-                            "\nServer Time: " + data.server_time);
-                    });
-            }
-
-            function syncTime(id) {
-                fetch('/devices/' + id + '/sync-time', {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                        }
-                    })
-                    .then(res => res.json())
-                    .then(data => {
-                        alert(data.message);
-                    });
-            }
             // Delete User
             function deleteUser(uid) {
                 Swal.fire({
@@ -290,11 +327,10 @@
                 });
             }
 
-            // Enroll Fingerprint
             function enrollFingerprint(uid) {
                 Swal.fire({
                     title: 'Enroll Fingerprint',
-                    text: 'Please place finger on the device scanner for UID: ' + uid,
+                    text: 'Please place your finger on the device scanner.',
                     icon: 'info',
                     showCancelButton: true,
                     confirmButtonText: 'Start Enrollment'
@@ -302,11 +338,9 @@
                     if (result.isConfirmed) {
                         Swal.fire({
                             title: 'Enrolling...',
-                            text: 'Please keep finger on scanner',
+                            text: 'Keep your finger on the scanner',
                             allowOutsideClick: false,
-                            didOpen: () => {
-                                Swal.showLoading();
-                            }
+                            didOpen: () => Swal.showLoading()
                         });
 
                         fetch(`/zk/users/${uid}/enroll-fingerprint`, {
@@ -322,22 +356,16 @@
                             .then(res => res.json())
                             .then(data => {
                                 if (data.success) {
-                                    Swal.fire(
-                                        'Success!',
-                                        'Fingerprint enrolled successfully',
-                                        'success'
-                                    ).then(() => location.reload());
+                                    Swal.fire('Success!', 'Fingerprint enrolled successfully.', 'success')
+                                        .then(() => location.reload());
                                 } else {
-                                    Swal.fire(
-                                        'Error!',
-                                        data.message || 'Enrollment failed',
-                                        'error'
-                                    );
+                                    Swal.fire('Error!', data.message || 'Enrollment failed', 'error');
                                 }
                             });
                     }
                 });
             }
+
 
             // Enroll Face
             function enrollFace(uid) {

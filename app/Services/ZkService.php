@@ -33,6 +33,28 @@ class ZkService
     {
         return $this->zk->disconnect();
     }
+        public function restart()
+    {
+        if (!$this->connect()) {
+            return false;
+        }
+
+        $result = $this->zk->restart();
+        $this->disconnect();
+        return $result;
+
+    }
+
+        public function shutdown()
+        {
+            if (!$this->connect()) {
+                return false;
+            }
+    
+            $result = $this->zk->shutdown();
+            $this->disconnect();
+            return $result;
+        }
 
     public function connectDevice(Device $device): bool
     {
@@ -58,13 +80,13 @@ class ZkService
         $deviceInfo = [
             'Device IP' => $this->ip,
             'Port' => $this->port,
-            'device_name' => $this->zk->deviceName(),
-            'serial_number' => $this->zk->serialNumber(),
-            'platform' => $this->zk->platform(),
-            'firmware_version' => $this->zk->fmVersion(),
-            'os_version' => $this->zk->osVersion(),
-            'version' => $this->zk->version(),
-            'device_time' => $this->zk->getTime(),
+            'Device_name' => $this->zk->deviceName(),
+            'Serial_number' => $this->zk->serialNumber(),
+            'Platform' => $this->zk->platform(),
+            'Firmware_version' => $this->zk->fmVersion(),
+            'Os_version' => $this->zk->osVersion(),
+            'Version' => $this->zk->version(),
+            'Device_time' => $this->zk->getTime(),
         ];
 
         $users = $this->zk->getUser() ?? [];
@@ -80,29 +102,6 @@ class ZkService
             'sample_users' => array_slice($users, 0, 1000),
             'sample_attendance' => array_slice($attendance, 0, 1000),
         ];
-    }
-    public function syncDeviceTime($time = null)
-    {
-        $time = $time ?? now()->format('Y-m-d H:i:s');
-
-        $result = $this->zk->setTime($time);
-
-        return [
-            'success' => $result ? true : false,
-            'message' => $result ? 'Device time synced successfully' : 'Failed to sync device time',
-            'synced_time' => $time
-        ];
-    }
-    public function restart()
-    {
-        if (!$this->connect()) {
-            return false;
-        }
-
-        $result = $this->zk->restart();
-        $this->disconnect();
-        return $result;
-
     }
     public function getAllUsers()
     {
@@ -184,29 +183,7 @@ class ZkService
         return $logs;
     }
 
-    public function syncAttendance()
-    {
-        $logs = DB::connection('zktime')
-            ->table('att_log')
-            ->select('pin', 'verify_time')
-            ->get();
 
-        foreach ($logs as $log) {
-            $date = date('Y-m-d', strtotime($log->verify_time));
-            $time = date('H:i:s', strtotime($log->verify_time));
-
-            Attendance::updateOrCreate(
-                [
-                    'emp_code' => $log->pin,
-                    'date' => $date,
-                ],
-                [
-                    'check_in' => $time,
-                    'status' => 'Present'
-                ]
-            );
-        }
-    }
 
     /** Fingerprint */
     public function parseFingerprint($rawTemplate)
@@ -218,6 +195,8 @@ class ZkService
     {
         return $this->zk->enrollFingerprint($uid, $fingerId, $templateData);
     }
+
+
 
     /** Face */
     public function getFaceData($uid)
@@ -256,6 +235,8 @@ class ZkService
     {
         return $this->zk->getAvailableRoles();
     }
+
+
 
 
 }
