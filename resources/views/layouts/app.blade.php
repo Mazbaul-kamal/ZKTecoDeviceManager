@@ -227,6 +227,7 @@
             gap: 10px;
             border-bottom: 2px dashed #a5bbd5;
             padding-bottom: 0.5rem;
+            line-height: 1.2;
         }
 
         .tree-item {
@@ -295,7 +296,7 @@
         .device-mgmt-block {
             background: #f8fafc;
             border-radius: 20px;
-            padding: 1.2rem 1rem 1rem 1rem;
+            padding: 1.5rem 1.2rem;
             border: 1px solid #d0d9e3;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.02);
         }
@@ -304,7 +305,7 @@
             font-size: 1.1rem;
             font-weight: 700;
             color: #11324b;
-            margin-bottom: 1rem;
+            margin-bottom: 1.5rem;
             letter-spacing: -0.2px;
             display: flex;
             align-items: center;
@@ -345,9 +346,11 @@
             color: #163a5e;
             border: 1px solid #b7c7da;
             font-weight: 600;
+            text-decoration: none;
         }
 
     </style>
+    @stack('styles')
 </head>
 
 <body>
@@ -358,6 +361,7 @@
                 <a href="{{ url('/') }}"><i class="fas fa-home"></i> Home</a>
                 <a href="{{ url('/dashboard') }}"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
                 <a href="{{ route('zk.users.index') }}"><i class="fas fa-users"></i> Users</a>
+                 <a href="{{ route('zk.attendance.index') }}"><i class="fas fa-clock"></i> Attendance</a>
             </div>
         </div>
     </nav>
@@ -371,6 +375,7 @@
     <footer>
         <p>&copy; {{ date('Y') }} ZKTeco Device Manager. All rights reserved.</p>
     </footer>
+    @stack('scripts')
 </body>
 
 </html>

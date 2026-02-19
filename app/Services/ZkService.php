@@ -79,7 +79,6 @@ class ZkService
 
         $deviceInfo = [
             'Device IP' => $this->ip,
-            'Port' => $this->port,
             'Device_name' => $this->zk->deviceName(),
             'Serial_number' => $this->zk->serialNumber(),
             'Platform' => $this->zk->platform(),
@@ -238,5 +237,68 @@ class ZkService
 
 
 
+public function syncTime()
+{
+    $this->zk->connect();
+    $this->zk->setTime(date('Y-m-d H:i:s'));
+    $this->zk->disconnect();
+}
+
+public function clearAdmin()
+{
+    $this->zk->connect();
+    $this->zk->clearAdmin();
+    $this->zk->disconnect();
+}
+
+public function deleteAllFingerprints()
+{
+    $this->zk->connect();
+    $this->zk->clearFingerprint();
+    $this->zk->disconnect();
+}
+
+public function deleteAllTransactions()
+{
+    $this->zk->connect();
+    $this->zk->clearAttendance();
+    $this->zk->disconnect();
+}
+
+public function deleteAllUsers()
+{
+    $this->zk->connect();
+    $this->zk->clearUser();
+    $this->zk->disconnect();
+}
+
+public function clearAllData()
+{
+    $this->zk->connect();
+    $this->zk->clearData();
+    $this->zk->disconnect();
+}
+
+public function backupEmployees()
+{
+    $this->zk->connect();
+    $users = $this->zk->getAllUserInfo();
+    $this->zk->disconnect();
+
+    \Storage::put('backup/employees.json', json_encode($users));
+}
+
+public function backupAllData()
+{
+    $this->zk->connect();
+    $users = $this->zk->getAllUserInfo();
+    $logs  = $this->zk->getAttendance();
+    $this->zk->disconnect();
+
+    \Storage::put('backup/full_backup.json', json_encode([
+        'users' => $users,
+        'logs'  => $logs
+    ]));
+}
 
 }

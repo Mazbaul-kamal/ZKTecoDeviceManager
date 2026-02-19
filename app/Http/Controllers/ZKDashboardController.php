@@ -223,6 +223,72 @@ class ZKDashboardController extends Controller
         return back()->with('success', 'Device Shutdown Successfully');
     }
 
+public function deviceAction($action)
+{
+    try {
+
+        switch ($action) {
+
+            case 'sync-time':
+                $this->fingerprintService->syncTime();
+                $message = "Device time synchronized.";
+                break;
+
+            case 'clear-admin':
+                $this->fingerprintService->clearAdmin();
+                $message = "Admin privileges cleared.";
+                break;
+
+            case 'delete-fingerprint':
+                $this->fingerprintService->deleteAllFingerprints();
+                $message = "All fingerprints deleted.";
+                break;
+
+            case 'delete-transaction':
+                $this->fingerprintService->deleteAllTransactions();
+                $message = "All transactions deleted.";
+                break;
+
+            case 'delete-employee':
+                $this->fingerprintService->deleteAllUsers();
+                $message = "All employees deleted.";
+                break;
+
+            case 'delete-all':
+                $this->fingerprintService->clearAllData();
+                $message = "All device data cleared.";
+                break;
+
+            case 'backup-employee':
+                $this->fingerprintService->backupEmployees();
+                $message = "Employee backup completed.";
+                break;
+
+            case 'backup-all':
+                $this->fingerprintService->backupAllData();
+                $message = "Full device backup completed.";
+                break;
+
+            default:
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid device action.'
+                ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => $message
+        ]);
+
+    } catch (\Exception $e) {
+
+        return response()->json([
+            'success' => false,
+            'message' => $e->getMessage()
+        ]);
+    }
+}
 
 
 }

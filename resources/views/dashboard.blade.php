@@ -29,14 +29,15 @@
             <div class="stat-box p-0">
                 <div class="sync-tree-card">
                     <div class="tree-header">
-                       <i class="fas fa-info-circle"></i> Device Information
+                        <i class="fas fa-info-circle"></i> Device Information
                     </div>
                     <div class="mgmt-options">
                         @foreach ($device_info ?? [] as $key => $value)
-                        <div class="mgmt-row">
-                            <span class="left-label"><i class="fas fa-tag"></i> {{ str_replace('_', ' ', $key) }}</span>
-                            <span class="value-placeholder">{{ $value }}</span>
-                        </div>
+                            <div class="mgmt-row">
+                                <span class="left-label"><i class="fas fa-tag"></i> {{ str_replace('_', ' ', $key) }}
+                                    :</span>
+                                <span class="value-placeholder">{{ $value }}</span>
+                            </div>
                         @endforeach
                     </div>
                 </div>
@@ -45,59 +46,76 @@
             <div class="stat-box p-0">
                 <div class="device-mgmt-block">
                     <h3><i class="fas fa-gear"></i> Device Management</h3>
-                    <div class="mgmt-options">
-                        <div class="mgmt-row">
-                            <span class="left-label"><i class="fas fa-calendar"></i> <input type="date" id="dateInput"></span>
-                            <span class="value-placeholder" id="dateDisplay">24-02-08</span>
-                        </div>
-                        <script>
-                            const dateInput = document.getElementById('dateInput');
-                            const dateDisplay = document.getElementById('dateDisplay');
 
-                            // Update placeholder when user selects a date
-                            dateInput.addEventListener('input', function() {
-                                if (this.value) {
-                                    const date = new Date(this.value);
-                                    // Format as DD-MM-YY
-                                    const formatted = String(date.getDate()).padStart(2, '0') + '-' +
-                                                    String(date.getMonth() + 1).padStart(2, '0') + '-' +
-                                                    String(date.getFullYear()).slice(2);
-                                    dateDisplay.textContent = formatted;
-                                } else {
-                                    dateDisplay.textContent = '24-02-08'; // default value
-                                }
-                            });
-                        </script>
+                    <div class="mgmt-options">
+
                         <div class="mgmt-row">
-                            <span class="left-label"><i class="fas fa-clock"></i> Set Date Format</span>
-                            <span class="value-placeholder">mm/dd/yy</span>
+                            <span class="left-label">
+                                <i class="fas fa-rotate"></i> Sync Time
+                            </span>
+                            <a href="javascript:void(0)" class="value-placeholder"
+                                onclick="deviceAction('sync-time')">Now</a>
                         </div>
+
                         <div class="mgmt-row">
-                            <span class="left-label"><i class="fas fa-rotate"></i> Sync Time</span>
-                            <span class="value-placeholder">now</span>
+                            <span class="left-label">
+                                <i class="fas fa-lock"></i> Clear Admin Privilege
+                            </span>
+                            <a href="javascript:void(0)" class="value-placeholder"
+                                onclick="deviceAction('clear-admin')">Now</a>
                         </div>
+
                         <div class="mgmt-row">
-                            <span class="left-label"><i class="fas fa-lock"></i> Clear Admin Privilege</span>
-                            <span class="value-placeholder"> </span>
+                            <span class="left-label">
+                                <i class="fas fa-fingerprint"></i> Delete All Fingerprint
+                            </span>
+                            <a href="javascript:void(0)" class="value-placeholder"
+                                onclick="deviceAction('delete-fingerprint')">Now</a>
                         </div>
+
                         <div class="mgmt-row">
-                            <span class="left-label"><i class="fas fa-fingerprint"></i> Delete All Fingerprint</span>
-                            <span class="value-placeholder">0</span>
+                            <span class="left-label">
+                                <i class="fas fa-clock-rotate-left"></i> Delete All Transaction
+                            </span>
+                            <a href="javascript:void(0)" class="value-placeholder"
+                                onclick="deviceAction('delete-transaction')">Now</a>
                         </div>
+
                         <div class="mgmt-row">
-                            <span class="left-label"><i class="fas fa-clock-rotate-left"></i> Delete All Transaction</span>
-                            <span class="value-placeholder">0</span>
+                            <span class="left-label">
+                                <i class="fas fa-user-xmark"></i> Delete All Employee
+                            </span>
+                            <a href="javascript:void(0)" class="value-placeholder"
+                                onclick="deviceAction('delete-employee')">Now</a>
                         </div>
+
                         <div class="mgmt-row">
-                            <span class="left-label"><i class="fas fa-user-xmark"></i> Delete All Employee</span>
-                            <span class="value-placeholder">0</span>
+                            <span class="left-label">
+                                <i class="fas fa-database"></i> Backup All Employee
+                            </span>
+                            <a href="javascript:void(0)" class="value-placeholder"
+                                onclick="deviceAction('backup-employee')">Now</a>
                         </div>
+
                         <div class="mgmt-row">
-                            <span class="left-label"><i class="fas fa-database"></i> Delete All Data</span>
-                            <span class="value-placeholder"> </span>
+                            <span class="left-label">
+                                <i class="fas fa-database"></i> Delete All Data
+                            </span>
+                            <a href="javascript:void(0)" class="value-placeholder"
+                                onclick="deviceAction('delete-all')">Now</a>
                         </div>
+
+                        <div class="mgmt-row">
+                            <span class="left-label">
+                                <i class="fas fa-database"></i> Backup All Data
+                            </span>
+                            <a href="javascript:void(0)" class="value-placeholder"
+                                onclick="deviceAction('backup-all')">Now</a>
+                        </div>
+
                     </div>
                 </div>
+
             </div>
 
             <div class="stat-box p-0">
@@ -118,14 +136,11 @@
                             <li><i class="fas fa-hand-back-fist"></i> Sync Finger Vein Template</li>
                             <li><i class="fas fa-pen-to-square"></i> Overwrite Software Employee</li>
                             <li><i class="fas fa-camera"></i> Sync Employee Photo</li>
-                            <li><i class="fas fa-message"></i> Send Message To Device</li>
                         </ul>
                     </div>
                 </div>
             </div>
         </div>
-
-        <script></script>
 
 
         <!-- Users Table -->
@@ -165,13 +180,11 @@
                                     </span>
                                 </td>
                                 <td>
-                                <td>
                                     @if (!empty($user['fingerprints']) && count($user['fingerprints']) > 0)
                                         <i class="fas fa-check-circle text-success"></i> Yes
                                     @else
                                         <i class="fas fa-times-circle text-danger"></i> No
                                     @endif
-                                </td>
                                 </td>
                                 <td>
                                     @if ($user['face'] ?? false)
@@ -288,6 +301,46 @@
         </div>
 
         <script>
+            function deviceAction(action) {
+
+                Swal.fire({
+                    title: 'Confirm Action',
+                    text: 'This will execute a device-level operation.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Proceed'
+                }).then((result) => {
+
+                    if (!result.isConfirmed) return;
+
+                    Swal.fire({
+                        title: 'Processing...',
+                        allowOutsideClick: false,
+                        didOpen: () => Swal.showLoading()
+                    });
+
+                    fetch(`/zk/device/${action}`, {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            }
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            Swal.close();
+
+                            if (data.success) {
+                                Swal.fire('Success', data.message, 'success');
+                            } else {
+                                Swal.fire('Error', data.message, 'error');
+                            }
+                        })
+                        .catch(() => {
+                            Swal.fire('Error', 'Server communication failed.', 'error');
+                        });
+                });
+            }
+
             // Delete User
             function deleteUser(uid) {
                 Swal.fire({

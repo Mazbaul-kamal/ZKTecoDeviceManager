@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ZKDashboardController;
 use App\Http\Controllers\ZkUserController;
+use App\Http\Controllers\ZkAttendanceController;
 
 
 
@@ -14,8 +15,11 @@ Route::get('/', function () {
 });
 Route::post('/device/restart', [ZKDashboardController::class, 'restart']);
 Route::post('/device/shutdown', [ZKDashboardController::class, 'shutdown']);
-Route::post('/device/sync-time', [ZKDashboardController::class, 'syncTime'])
-    ->name('device.sync.time');
+// Route::post('/device/sync-time', [ZKDashboardController::class, 'syncTime'])
+//     ->name('device.sync.time');
+Route::post('/zk/device/{action}', [ZKDashboardController::class, 'deviceAction']);
+
+
 
 // ZK Users Management - NO AUTH
 Route::prefix('zk/users')->name('zk.users.')->group(function () {
@@ -26,12 +30,20 @@ Route::prefix('zk/users')->name('zk.users.')->group(function () {
     Route::put('/{uid}', [ZkUserController::class, 'update'])->name('update');
     Route::delete('/{uid}', [ZkUserController::class, 'destroy'])->name('destroy');
     
+
+
     // Fingerprint & Face enrollment
     Route::post('/zk/users/{uid}/enroll-fingerprint', [ZkUserController::class, 'enrollFingerprint'])->name('enroll.fingerprint');
     Route::post('/{uid}/enroll-face', [ZkUserController::class, 'enrollFace'])->name('enroll.face');
     Route::put('/{uid}/role', [ZkUserController::class, 'updateRole'])->name('update.role');
 });
 
+// ZK Attendance Management - NO AUTH
+Route::prefix('zk/attendance')->name('zk.attendance.')->group(function () {
+    Route::get('/', [ZkAttendanceController::class, 'index'])->name('index');
+    Route::post('/sync', [ZkAttendanceController::class, 'sync'])->name('sync');
+    Route::get('/export', [ZkAttendanceController::class, 'export'])->name('export');
+});
 
 Route::get('/dashboard', [ZKDashboardController::class, 'dashboard'])->name('dashboard');
 
