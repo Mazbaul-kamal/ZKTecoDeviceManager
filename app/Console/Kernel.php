@@ -22,13 +22,14 @@ class Kernel extends ConsoleKernel
      * @param  \Illuminate\Console\Scheduling\Schedule  $schedule
      * @return void
      */
-    protected function schedule(Schedule $schedule)
-    {
-       $schedule->call(function () {
-    app(ZkService::class)->syncAttendance();
-})->everyFiveMinutes();
 
-    }
+          protected function schedule(Schedule $schedule)
+        {
+            $schedule->command('zk:sync')
+                ->everyMinute()
+                ->withoutOverlapping()
+                ->runInBackground();
+        }
 
     /**
      * Register the commands for the application.

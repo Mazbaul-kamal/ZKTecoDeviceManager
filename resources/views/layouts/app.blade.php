@@ -34,6 +34,29 @@
             line-height: 1.5;
         }
 
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar a {
+            margin-right: 15px;
+            text-decoration: none;
+        }
+
+        .active {
+            font-weight: bold;
+            border-bottom: 2px solid #ffffff;
+        }
+
+        .logout-btn {
+            background: #ffc107;
+            border: none;
+            padding: 10px 30px;
+            border-radius: 7px;
+        }
+
         .navbar {
             background-color: #1f2937;
             padding: 1rem 2rem;
@@ -348,7 +371,6 @@
             font-weight: 600;
             text-decoration: none;
         }
-
     </style>
     @stack('styles')
 </head>
@@ -356,12 +378,45 @@
 <body>
     <!-- Navigation Bar - Simplified without auth -->
     <nav class="navbar">
-        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-            <div>
-                <a href="{{ url('/') }}"><i class="fas fa-home"></i> Home</a>
-                <a href="{{ url('/dashboard') }}"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
-                <a href="{{ route('zk.users.index') }}"><i class="fas fa-users"></i> Users</a>
-                 <a href="{{ route('zk.attendance.index') }}"><i class="fas fa-clock"></i> Attendance</a>
+        <div class="container p-0">
+            <div class="nav-container w-100 d-flex justify-content-between align-items-center">
+                <div class="nav-left">
+                    <a href="{{ route('home') }}" class="{{ request()->routeIs('home') ? 'active' : '' }}">
+                        <i class="fas fa-home"></i> Home
+                    </a>
+
+                    @auth
+                        <a href="{{ route('dashboard') }}" class="{{ request()->routeIs('dashboard') ? 'active' : '' }}">
+                            <i class="fas fa-tachometer-alt"></i> Dashboard
+                        </a>
+
+                        <a href="{{ route('zk.users.index') }}"
+                            class="{{ request()->routeIs('zk.users.*') ? 'active' : '' }}">
+                            <i class="fas fa-users"></i> Users
+                        </a>
+
+                        <a href="{{ route('zk.attendance.index') }}"
+                            class="{{ request()->routeIs('zk.attendance.*') ? 'active' : '' }}">
+                            <i class="fas fa-clock"></i> Attendance
+                        </a>
+                    @endauth
+                </div>
+
+                <div class="nav-right">
+                    @auth
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+                            <button type="submit" class="logout-btn">
+                                <i class="fas fa-sign-out-alt"></i> Logout
+                            </button>
+                        </form>
+                    @endauth
+
+                    @guest
+                        <a href="{{ route('login') }}">Login</a>
+                        <a href="{{ route('register') }}">Register</a>
+                    @endguest
+                </div>
             </div>
         </div>
     </nav>
@@ -376,6 +431,41 @@
         <p>&copy; {{ date('Y') }} ZKTeco Device Manager. All rights reserved.</p>
     </footer>
     @stack('scripts')
+<script>
+function refreshDashboard() {
+    fetch("{{ route('dashboard.status') }}")
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById('users-count').innerText = data.users_count;
+            document.getElementById('attendance-count').innerText = data.attendance_count;
+
+            let rows = '';
+            data.attendances.forEach(log => {
+                rows += `<tr>
+                            <td>${log.uid}</td>
+                            <td>${log.user_id}</td>
+                            <td>${formatState(log.state)}</td>
+                            <td>${log.timestamp}</td>
+                        </tr>`;
+            });
+            document.getElementById('attendance-body').innerHTML = rows;
+        });
+}
+
+function formatState(state){
+    switch(state){
+        case 1: return 'Check-in';
+        case 2: return 'Check-out';
+        case 3: return 'Break-out';
+        case 4: return 'Break-in';
+        case 5: return 'Overtime-in';
+        default: return 'Unknown';
+    }
+}
+
+refreshDashboard();
+setInterval(refreshDashboard, 10000);
+</script>
 </body>
 
 </html>

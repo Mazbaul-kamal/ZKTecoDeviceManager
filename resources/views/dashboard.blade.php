@@ -242,7 +242,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse ($sample_attendance ?? [] as $log)
+                        @forelse ($attendances as $log)
                             <tr>
                                 <td>{{ $log['uid'] ?? '-' }}</td>
                                 <td>{{ $log['id'] ?? '-' }}</td>

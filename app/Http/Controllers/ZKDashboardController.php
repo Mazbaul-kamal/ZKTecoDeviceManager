@@ -11,6 +11,7 @@ use Illuminate\Http\JsonResponse;
 use App\Models\Device;
 use App\Models\ZkUser;
 use Illuminate\Support\Facades\Log;
+use App\Models\Attendance;
 
 class ZKDashboardController extends Controller
 {
@@ -29,25 +30,79 @@ class ZKDashboardController extends Controller
     /**
      * Display the dashboard
      */
+    // public function dashboard()
+    // {
+    //    $attendances = $this->zkService->getAttendance();
+    //     // 
+    //     try {
+    //         $data = $this->zkService->getDeviceData();
+    //         $data['attendances'] = $attendances;
+    //         return view('dashboard', $data);
+    //     } catch (\Exception $e) {
+    //         Log::error('Dashboard error: ' . $e->getMessage());
+    //         return view('dashboard', [
+    //             'connection' => 'Failed',
+    //             'device_info' => [],
+    //             'users_count' => 0,
+    //             'attendance_count' => 0,
+    //             'sample_users' => [],
+    //             'attendances' => [],
+    //             'error' => $e->getMessage()
+    //         ]);
+    //     }
+    // }
+
     public function dashboard()
-    {
-        
-        try {
-            $data = $this->zkService->getDeviceData();
-            return view('dashboard', $data);
-        } catch (\Exception $e) {
-            Log::error('Dashboard error: ' . $e->getMessage());
-            return view('dashboard', [
-                'connection' => 'Failed',
-                'device_info' => [],
-                'users_count' => 0,
-                'attendance_count' => 0,
-                'sample_users' => [],
-                'sample_attendance' => [],
-                'error' => $e->getMessage()
-            ]);
-        }
+{
+    try {
+            $attendances = Attendance::latest('timestamp')->limit(10)->get();
+    $users_count = \App\Models\User::count();
+    $attendance_count = Attendance::count();
+        $attendances = $this->zkService->getAttendance();
+        $data = $this->zkService->getDeviceData();
+
+        $data['attendances'] = $attendances;
+
+        return view('dashboard', $data);
+
+    } catch (\Exception $e) {
+        Log::error('Dashboard error: ' . $e->getMessage());
+
+        return view('dashboard', [
+            'connection' => 'Failed',
+            'device_info' => [],
+            'users_count' => 0,
+            'attendance_count' => 0,
+            'sample_users' => [],
+            'attendances' => [],
+            'error' => $e->getMessage()
+        ]);
     }
+}
+
+
+
+// public function dashboard()
+// {
+//     try {
+//         $devices = \App\Models\Device::all();
+//         $attendances = Attendance::latest('timestamp')->limit(10)->get();
+//         $users_count = \App\Models\User::count();
+//         $attendance_count = Attendance::count();
+
+//         return view('dashboard', compact('devices','attendances','users_count','attendance_count'));
+
+//     } catch (\Exception $e) {
+//         Log::error('Dashboard error: ' . $e->getMessage());
+//         return view('dashboard', [
+//             'devices' => [],
+//             'attendances' => [],
+//             'users_count' => 0,
+//             'attendance_count' => 0,
+//             'error' => $e->getMessage()
+//         ]);
+//     }
+// }
 
     /**
      * Fetch attendance records
@@ -230,42 +285,42 @@ public function deviceAction($action)
         switch ($action) {
 
             case 'sync-time':
-                $this->fingerprintService->syncTime();
+                $this->zkService->syncTime();
                 $message = "Device time synchronized.";
                 break;
 
             case 'clear-admin':
-                $this->fingerprintService->clearAdmin();
+                $this->zkService->clearAdmin();
                 $message = "Admin privileges cleared.";
                 break;
 
             case 'delete-fingerprint':
-                $this->fingerprintService->deleteAllFingerprints();
+                $this->zkService->deleteAllFingerprints();
                 $message = "All fingerprints deleted.";
                 break;
 
             case 'delete-transaction':
-                $this->fingerprintService->deleteAllTransactions();
+                $this->zkService->deleteAllTransactions();
                 $message = "All transactions deleted.";
                 break;
 
             case 'delete-employee':
-                $this->fingerprintService->deleteAllUsers();
+                $this->zkService->deleteAllUsers();
                 $message = "All employees deleted.";
                 break;
 
             case 'delete-all':
-                $this->fingerprintService->clearAllData();
+                $this->zkService->clearAllData();
                 $message = "All device data cleared.";
                 break;
 
             case 'backup-employee':
-                $this->fingerprintService->backupEmployees();
+                $this->zkService->backupEmployees();
                 $message = "Employee backup completed.";
                 break;
 
             case 'backup-all':
-                $this->fingerprintService->backupAllData();
+                $this->zkService->backupAllData();
                 $message = "Full device backup completed.";
                 break;
 
