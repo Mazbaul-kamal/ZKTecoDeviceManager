@@ -432,39 +432,9 @@
     </footer>
     @stack('scripts')
 <script>
-function refreshDashboard() {
-    fetch("{{ route('dashboard.status') }}")
-        .then(res => res.json())
-        .then(data => {
-            document.getElementById('users-count').innerText = data.users_count;
-            document.getElementById('attendance-count').innerText = data.attendance_count;
-
-            let rows = '';
-            data.attendances.forEach(log => {
-                rows += `<tr>
-                            <td>${log.uid}</td>
-                            <td>${log.user_id}</td>
-                            <td>${formatState(log.state)}</td>
-                            <td>${log.timestamp}</td>
-                        </tr>`;
-            });
-            document.getElementById('attendance-body').innerHTML = rows;
-        });
-}
-
-function formatState(state){
-    switch(state){
-        case 1: return 'Check-in';
-        case 2: return 'Check-out';
-        case 3: return 'Break-out';
-        case 4: return 'Break-in';
-        case 5: return 'Overtime-in';
-        default: return 'Unknown';
-    }
-}
-
-refreshDashboard();
-setInterval(refreshDashboard, 10000);
+setInterval(function () {
+    location.reload(); // reloads page without modifying URL
+}, 10000);
 </script>
 </body>
 

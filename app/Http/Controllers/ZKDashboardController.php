@@ -55,12 +55,14 @@ class ZKDashboardController extends Controller
     public function dashboard()
 {
     try {
-            $attendances = Attendance::latest('timestamp')->limit(10)->get();
-    $users_count = \App\Models\User::count();
-    $attendance_count = Attendance::count();
-        $attendances = $this->zkService->getAttendance();
-        $data = $this->zkService->getDeviceData();
 
+        $attendances = Attendance::latest('timestamp')->limit(10)->get();
+        $users_count = \App\Models\User::count();
+        $attendance_count = Attendance::count();
+        $attendances = $this->zkService->getAttendance();
+        $employees = $this->zkService->getEmployees();
+        
+        $data = $this->zkService->getDeviceData();
         $data['attendances'] = $attendances;
 
         return view('dashboard', $data);
@@ -75,6 +77,7 @@ class ZKDashboardController extends Controller
             'attendance_count' => 0,
             'sample_users' => [],
             'attendances' => [],
+            'employees' => [],
             'error' => $e->getMessage()
         ]);
     }
@@ -104,133 +107,19 @@ class ZKDashboardController extends Controller
 //     }
 // }
 
-    /**
-     * Fetch attendance records
-     */
-    public function fetch()
-    {
-        $ip = env('ZK_DEVICE_IP', '192.168.1.215');
-        $port = env('ZK_DEVICE_PORT', 4370);
-
-        $zk = new ZKTeco($ip, $port);
-        
-        try {
-            $connected = $zk->connect();
-
-            if (!$connected) {
-                return response()->json([
-                    'success' => false,
-                    'error' => 'Device not connected'
-                ], 500);
-            }
-
-            $attendance = $zk->getAttendance();
-            $zk->disconnect();
-
-            return response()->json([
-                'success' => true,
-                'attendance' => $attendance,
-                'count' => count($attendance)
-            ]);
-
-        } catch (\Throwable $e) {
-            Log::error('Fetch attendance error: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'error' => $e->getMessage()
-            ], 500);
-        }
-    }
-
-    /**
-     * Fetch users from device
-     */
-    public function fetchUsers()
-    {
-        $ip = env('ZK_DEVICE_IP', '192.168.1.215');
-        $port = env('ZK_DEVICE_PORT', 4370);
-
-        $zk = new ZKTeco($ip, $port);
-
-        try {
-            $connected = $zk->connect();
-
-            if (!$connected) {
-                return response()->json([
-                    'success' => false,
-                    'error' => 'Device not connected'
-                ], 500);
-            }
-
-            $users = $zk->getUser();
-            $zk->disconnect();
-
-            return response()->json([
-                'success' => true,
-                'users' => $users,
-                'count' => count($users),
-            ]);
-
-        } catch (\Throwable $e) {
-            Log::error('Fetch users error: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'error' => $e->getMessage()
-            ], 500);
-        }
-    }
-
-    
-    /**
-     * Display users list
-     */
-    public function index(Device $device)
-    {
-        $users = ZkUser::where('device_id', $device->id)
-            ->paginate(15);
-
-        return view('zk.users.index', compact('users', 'device'));
-    }
-    
-    /**
-     * Store new user
-     */
-    public function store(Request $request)
+/**post time to device */
+    public function setTime()
     {
         try {
-            $device = Device::findOrFail($request->device_id);
-
-            $result = $this->zkService->createUser(
-                $request->uid,
-                $request->userid,
-                $request->name,
-                $request->password ?? '',
-                $request->role ?? 0,
-                $request->cardno ?? 0
-            );
-
-            if ($result) {
-                $this->zkService->syncUsers($device);
-                return response()->json([
-                    'success' => true,
-                    'message' => 'User created successfully'
-                ]);
-            }
-
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to create user'
-            ], 500);
-
+            $this->zkService->syncTime();
+            return back()->with('success', 'Device time synchronized successfully.');
         } catch (\Exception $e) {
-            Log::error('Store user error: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage()
-            ], 500);
+            Log::error('Set time error: ' . $e->getMessage());
+            return back()->with('error', 'Failed to synchronize device time: ' . $e->getMessage());
         }
     }
-        /**
+
+    /**
      * Get current system time
      */
     public function getSystemTime(): JsonResponse
@@ -242,22 +131,15 @@ class ZKDashboardController extends Controller
         ]);
     }
     
-    /**
-     * Sync device time with server time.
-     */
     public function syncTime()
     {
-        $timeString = now()
-            ->setTimezone(config('app.timezone'))
-            ->format('d-m-y H:i:s');
-
-        $result = $this->zkService->setDeviceTime($timeString);
-
-        return redirect()->back()->with([
-            'sync_success' => $result['success'],
-            'sync_message' => $result['message'] ?? null,
-            'device_time'  => $result['device_time'] ?? null,
-        ]);
+        try {
+            $this->zkService->syncTime();
+            return response()->json(['success' => true, 'message' => 'Device time synchronized successfully.']);
+        } catch (\Exception $e) {
+            Log::error('Sync time error: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Failed to synchronize device time: ' . $e->getMessage()]);
+        }
     }
 
     public function restart()

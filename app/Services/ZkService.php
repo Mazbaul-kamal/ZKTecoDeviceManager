@@ -73,7 +73,7 @@ class ZkService
                 'users_count' => 0,
                 'attendance_count' => 0,
                 'sample_users' => [],
-                'sample_attendance' => [],
+                'attendance' => [],
             ];
         }
 
@@ -277,6 +277,13 @@ public function clearAllData()
     $this->zk->connect();
     $this->zk->clearData();
     $this->zk->disconnect();
+}
+public function getEmployees()
+{
+    if (!$this->connect()) return [];
+    $users = $this->zk->getUser();
+    $this->disconnect();
+    return $users ?? [];
 }
 
 public function backupEmployees()

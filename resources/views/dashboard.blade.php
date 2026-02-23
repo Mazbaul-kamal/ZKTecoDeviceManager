@@ -141,7 +141,89 @@
                 </div>
             </div>
         </div>
+        <!-- Employee Table -->
+        <div class="card">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="card-title">
+                    <i class="fas fa-users"></i> Employees
+                </div>
+                <a class="btn btn-primary" href="">
+                    <i class="fas fa-plus"></i> Create Employee
+                </a>
+            </div>
 
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>UID</th>
+                            <th>Employee ID</th>
+                            <th>Name</th>
+                            <th>Position</th>
+                            <th>Hired Date</th>
+                            <th>Department</th>
+                            <th>Device Privilege</th>
+                            <th>Fingerprint</th>
+                            <th>Face</th>
+                            <th>Card Number</th>
+                            <th width="200">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse ($employees ?? [] as $employee)
+                                                {{ dd($employee); }}
+                            <tr>
+                                <td>{{ $employee['uid'] ?? '-' }}</td>
+                                <td>{{ $employee['user_id'] ?? '-' }}</td>
+                                <td>{{ $employee['name'] ?? '-' }}</td>
+                                <td>{{ $employee['position'] ?? '-' }}</td>
+                                <td>{{ $employee['hired_date'] ?? '-' }}</td>
+                                <td>{{ $employee['department'] ?? '-' }}</td>
+                                <td>{{ $employee['device_privilege'] ?? '-' }}</td>
+                                <td>
+                                    @if (!empty($employee['fingerprints']) && count($employee['fingerprints']) > 0)
+                                        <i class="fas fa-check-circle text-success"></i> Yes
+                                    @else
+                                        <i class="fas fa-times-circle text-danger"></i> No
+                                    @endif
+                                </td>
+                                <td>
+                                    @if ($employee['face'] ?? false)
+                                        <i class="fas fa-check-circle text-success"></i> Yes
+                                    @else
+                                        <i class="fas fa-times-circle text-danger"></i> No
+                                    @endif
+                                </td>
+                                <td>{{ $employee['cardno'] ?? '-' }}</td>
+                                <td>
+                                    <div class="d-flex gap-2">
+                                        <button class="btn btn-success btn-sm"
+                                            onclick="enrollFingerprint({{ $employee['uid'] }})">
+                                            <i class="fas fa-fingerprint"></i>
+                                        </button>
+                                        <button class="btn btn-warning btn-sm" onclick="enrollFace({{ $employee['uid'] }})">
+                                            <i class="fas fa-face-smile"></i>
+                                        </button>
+                                        <a href="{{ route('zk.employees.edit', $employee['uid']) }}"
+                                            class="btn btn-secondary btn-sm">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button onclick="deleteEmployee({{ $employee['uid'] }})"
+                                            class="btn btn-danger btn-sm">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="11" class="text-center">No employees found</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
         <!-- Users Table -->
         <div class="card">
@@ -247,7 +329,7 @@
                                 <td>{{ $log['uid'] ?? '-' }}</td>
                                 <td>{{ $log['id'] ?? '-' }}</td>
                                 <td>
-                                    @switch($log['state'] ?? 0)
+                                    @switch((int)($log['state'] ?? 0))
                                         @case(1)
                                             <span class="badge bg-success">Check-in</span>
                                         @break
